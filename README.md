@@ -1,27 +1,33 @@
-# Holiday App
+# Federal holidays for(USA, Canada)
 
-## Overview
 This application manages federal holidays for different countries (USA, Canada) using Spring Boot, Spring Data JPA, and an H2 in-memory database.
 
-## Requirements
-- Java 17 or above
-- Maven
+## Features
+- File upload with dataset.
+- Add holiday.
+- Update holiday.
+- Get holidays by countries.
+- Delete holiday
 
-## Setup and Run
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/holiday-app.git
-   
-   2. Clean and build the code using any IDE.
-   3. Run the Spring Boot application.
-   
-   4. Open H2 database using below url:
-   ```bash
-       http://localhost:8080/h2-console/
-   
-   
-   
-   5. Check all the endpoints using below url:
-   ```bash
-        http://localhost:8080/swagger-ui/index.html#/
-   
+## Technologies
+- Spring Boot
+- h2-console
+- Swagger
+
+
+## Running the Application
+1. Set up h2-console and update `application.properties`.
+2. Run the application with 
+- mvn clean package
+3. Access Swagger at `http://localhost:8080/swagger-ui/index.html`.
+4. Java version 17
+
+## Testing
+Run tests with `mvn test`.
+
+## Endpoints
+- **POST /api/holidays/upload**: To Upload a  datasets.
+- **POST /api/holidays/**: Add a new holiday.
+- **PUT /api/holidays/{id}**: To update holidays details.
+- **GET /api/holidays/**: To get holidays details.
+- **DELETE /api/holidays/{id}**: To delete holiday.

@@ -6,6 +6,11 @@ import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+
+import com.calendar.holiday.demo.model.Holiday;
+
 public class ValidationUtil {
 
 	private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -32,7 +37,7 @@ public class ValidationUtil {
 			return false;
 		}
 	}
-	
+
 	public static boolean isValidCountry(String cu) {
 		List<String> country = Arrays.asList("USA", "usa", "CANADA", "canada");
 
@@ -42,6 +47,29 @@ public class ValidationUtil {
 		} else {
 			return false;
 		}
+	}
+
+	public static HolidayMapper validateInput(Holiday holiday) {
+		HolidayMapper error = new HolidayMapper();
+		if (holiday.getCountry().isEmpty() && holiday.getDate().isEmpty()
+				&& holiday.getDayOfWeek().isEmpty() && holiday.getHolidayName().isEmpty()) {
+			error.setErrCode("400");
+			error.setErrMessage("Mandatoty fiels shouldn't empty");
+		} else if (holiday.getCountry() != null && !ValidationUtil.isValidCountry(holiday.getCountry())) {
+			error.setErrCode("400");
+			error.setErrMessage("Country should be Either USA or CANADA");
+
+		} else if (holiday.getDate() != null && !ValidationUtil.isValidDate(holiday.getDate())) {
+			error.setErrCode("400");
+			error.setErrMessage("Invalid date format");
+
+		} else if (holiday.getDayOfWeek() != null && !ValidationUtil.isValidDay(holiday.getDayOfWeek())) {
+			error.setErrCode("400");
+			error.setErrMessage("Invalid Day Of Week");
+			// return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+
+		}
+		return error;
 	}
 
 }

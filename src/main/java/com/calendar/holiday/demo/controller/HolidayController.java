@@ -55,31 +55,13 @@ public class HolidayController {
 	@PostMapping
 	public ResponseEntity<Object> addHoliday(@RequestBody Holiday holiday) {
 		logger.info("Inserting holidays details..");
-		HolidayMapper error = new HolidayMapper();
-		if (holiday.getId() == null && holiday.getCountry().isEmpty() && holiday.getDate().isEmpty()
-				&& holiday.getDayOfWeek().isEmpty() && holiday.getHolidayName().isEmpty()) {
-			error.setErrCode("400");
-			error.setErrMessage("Mandatoty fiels shouldn't empty");
+		
+		HolidayMapper error = ValidationUtil.validateInput(holiday);
+		
+		if(error.getErrCode()!=null && error.getErrCode().equalsIgnoreCase("400")) {
 			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-		} else if (holiday.getCountry() != null && !ValidationUtil.isValidCountry(holiday.getCountry())) {
-			error.setErrCode("400");
-			error.setErrMessage("Country should be Either USA or CANADA");
-			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-
-		} else if (holiday.getDate() != null && !ValidationUtil.isValidDate(holiday.getDate())) {
-			error.setErrCode("400");
-			error.setErrMessage("Invalid date format");
-			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-
-		} else if (holiday.getDayOfWeek() != null && !ValidationUtil.isValidDay(holiday.getDayOfWeek())) {
-			error.setErrCode("400");
-			error.setErrMessage("Invalid Day Of Week");
-			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-
 		}
-
 		Holiday savedHoliday = holidayService.addHoliday(holiday);
-
 		return new ResponseEntity<>(savedHoliday, HttpStatus.CREATED);
 	}
 
@@ -108,15 +90,12 @@ public class HolidayController {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
 			Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
 			for (CSVRecord record : records) {
-				String id = record.get("Id");
 				String country = record.get("country");
 				String holidayName = record.get("holidayName");
 				String dayOfWeek = record.get("dayOfWeek");
 				String date = record.get("date");
-				// validateRecord(name, countryName, countryCode, file.getOriginalFilename());
 
 				Holiday holiday = new Holiday();
-				holiday.setId(Long.parseLong(id));
 				holiday.setCountry(country);
 				holiday.setHolidayName(holidayName);
 				holiday.setDayOfWeek(dayOfWeek);
