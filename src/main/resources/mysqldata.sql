@@ -1,0 +1,4 @@
+INSERT INTO HOLIDAY VALUES(1,'USA','01/01/2024','Sunday','New Year’s Day');
+INSERT INTO HOLIDAY VALUES(2,'CANADA','18/04/2024','Friday','Good Friday');
+INSERT INTO HOLIDAY VALUES(3,'CANADA','01/07/2024','Tuesday','Canada Day');
+INSERT INTO HOLIDAY VALUES(4,'USA','04/07/2024','Thursday','Independence Day');
