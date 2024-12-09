@@ -1,10 +1,8 @@
 package com.calendar.holiday.demo.controller;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -73,36 +71,45 @@ public class HolidayController {
 	}
 
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> deleteHoliday(@PathVariable Long id) {
+	public ResponseEntity<String> deleteHoliday(@PathVariable Long id) {
 		logger.info("Deleting Holidays list..");
 		if (holidayService.deleteHoliday(id)) {
-			return ResponseEntity.noContent().build();
+			return ResponseEntity.ok("Record Deleted successfully.");	
 		}
-		return ResponseEntity.notFound().build();
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Record doesn't Exist in System.");
 	}
 
+	@SuppressWarnings("deprecation")
 	@PostMapping(value ="/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
+		logger.info("File uploading for  Holidays list..");
 		
 		if (file.isEmpty() || !file.getOriginalFilename().endsWith(".csv")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload a valid CSV file.");
         }
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
+			List<Holiday> holidays = new ArrayList<>();
 			Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
 			for (CSVRecord record : records) {
 				String country = record.get("country");
 				String holidayName = record.get("holidayName");
 				String dayOfWeek = record.get("dayOfWeek");
 				String date = record.get("date");
-
+                if(country.isEmpty() || holidayName.isEmpty() || dayOfWeek.isEmpty() || date.isEmpty()) {
+                	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload valid input inside file.");
+                }
 				Holiday holiday = new Holiday();
 				holiday.setCountry(country);
 				holiday.setHolidayName(holidayName);
 				holiday.setDayOfWeek(dayOfWeek);
 				holiday.setDate(date);
+				holidays.add(holiday);
 				holidayService.addHoliday(holiday);
+				if(holidays.size()<0) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload valid input inside file.");	
+				}
 			}
-			return ResponseEntity.ok("File processed successfully.");
+			return ResponseEntity.ok("File processed successfully. No of records inserted are:"+holidays.size());	
 		}catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
