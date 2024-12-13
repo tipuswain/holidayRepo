@@ -51,23 +51,36 @@ public class ValidationUtil {
 
 	public static HolidayMapper validateInput(Holiday holiday) {
 		HolidayMapper error = new HolidayMapper();
-		if (holiday.getCountry().isEmpty() && holiday.getDate().isEmpty()
-				&& holiday.getDayOfWeek().isEmpty() && holiday.getHolidayName().isEmpty()) {
+		if (holiday.getCountry().isEmpty() || holiday.getDate().isEmpty()
+				|| holiday.getDayOfWeek().isEmpty() || holiday.getHolidayName().isEmpty()) {
 			error.setErrCode("400");
-			error.setErrMessage("Mandatoty fiels shouldn't empty");
+			error.setErrMessage("Mandatoty fields shouldn't empty.");
 		} else if (holiday.getCountry() != null && !ValidationUtil.isValidCountry(holiday.getCountry())) {
 			error.setErrCode("400");
-			error.setErrMessage("Country should be Either USA or CANADA");
+			error.setErrMessage("Country should be Either USA or CANADA.");
+
+		}else if (holiday.getDayOfWeek() != null && !ValidationUtil.isValidDay(holiday.getDayOfWeek())) {
+			error.setErrCode("400");
+			error.setErrMessage("Invalid Day Of Week.");
+			// return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 
 		} else if (holiday.getDate() != null && !ValidationUtil.isValidDate(holiday.getDate())) {
 			error.setErrCode("400");
-			error.setErrMessage("Invalid date format");
+			error.setErrMessage("Invalid date format.");
 
-		} else if (holiday.getDayOfWeek() != null && !ValidationUtil.isValidDay(holiday.getDayOfWeek())) {
-			error.setErrCode("400");
-			error.setErrMessage("Invalid Day Of Week");
-			// return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+		} 
+		return error;
+	}
 
+
+	public static HolidayMapper checkDuplicate(List<Holiday> holidayListByDate, Holiday holiday) {
+		HolidayMapper error = new HolidayMapper();
+		for(Holiday check:holidayListByDate) {
+			
+			if((check.getDate().equalsIgnoreCase(holiday.getDate()) && (check.getCountry().equalsIgnoreCase(holiday.getCountry())))) {
+				error.setErrCode("400");
+				error.setErrMessage("Holiday is already Exist..");
+			}
 		}
 		return error;
 	}

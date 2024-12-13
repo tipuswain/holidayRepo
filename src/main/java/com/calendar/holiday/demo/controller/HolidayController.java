@@ -53,12 +53,21 @@ public class HolidayController {
 	@PostMapping
 	public ResponseEntity<Object> addHoliday(@RequestBody Holiday holiday) {
 		logger.info("Inserting holidays details..");
-		
+
 		HolidayMapper error = ValidationUtil.validateInput(holiday);
-		
-		if(error.getErrCode()!=null && error.getErrCode().equalsIgnoreCase("400")) {
+
+		if (error.getErrCode() != null && error.getErrCode().equalsIgnoreCase("400")) {
 			return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
 		}
+		List<Holiday> holidayListByDate = holidayService.listHolidaysDates(holiday.getDate());
+		
+		if (holidayListByDate.size() > 0) {
+			HolidayMapper dupError = ValidationUtil.checkDuplicate(holidayListByDate, holiday);
+			if (dupError.getErrCode() != null && dupError.getErrCode().equalsIgnoreCase("400")) {
+				return new ResponseEntity<>(dupError, HttpStatus.BAD_REQUEST);
+			}
+		}
+
 		Holiday savedHoliday = holidayService.addHoliday(holiday);
 		return new ResponseEntity<>(savedHoliday, HttpStatus.CREATED);
 	}
@@ -66,6 +75,7 @@ public class HolidayController {
 	@PutMapping("/{id}")
 	public ResponseEntity<Holiday> updateHoliday(@PathVariable Long id, @RequestBody Holiday holiday) {
 		logger.info("Updating holiday details...");
+
 		Optional<Holiday> updatedHoliday = holidayService.updateHoliday(id, holiday);
 		return updatedHoliday.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 	}
@@ -74,19 +84,19 @@ public class HolidayController {
 	public ResponseEntity<String> deleteHoliday(@PathVariable Long id) {
 		logger.info("Deleting Holidays list..");
 		if (holidayService.deleteHoliday(id)) {
-			return ResponseEntity.ok("Record Deleted successfully.");	
+			return ResponseEntity.ok("Record Deleted successfully.");
 		}
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Record doesn't Exist in System.");
 	}
 
 	@SuppressWarnings("deprecation")
-	@PostMapping(value ="/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
 		logger.info("File uploading for  Holidays list..");
-		
+
 		if (file.isEmpty() || !file.getOriginalFilename().endsWith(".csv")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload a valid CSV file.");
-        }
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload a valid CSV file.");
+		}
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
 			List<Holiday> holidays = new ArrayList<>();
 			Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
@@ -95,9 +105,10 @@ public class HolidayController {
 				String holidayName = record.get("holidayName");
 				String dayOfWeek = record.get("dayOfWeek");
 				String date = record.get("date");
-                if(country.isEmpty() || holidayName.isEmpty() || dayOfWeek.isEmpty() || date.isEmpty()) {
-                	return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload valid input inside file.");
-                }
+				if (country.isEmpty() || holidayName.isEmpty() || dayOfWeek.isEmpty() || date.isEmpty()) {
+					return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+							.body("Please upload valid input inside file..");
+				}
 				Holiday holiday = new Holiday();
 				holiday.setCountry(country);
 				holiday.setHolidayName(holidayName);
@@ -105,14 +116,14 @@ public class HolidayController {
 				holiday.setDate(date);
 				holidays.add(holiday);
 				holidayService.addHoliday(holiday);
-				if(holidays.size()<0) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload valid input inside file.");	
-				}
 			}
-			return ResponseEntity.ok("File processed successfully. No of records inserted are:"+holidays.size());	
-		}catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
+			if (holidays.size() < 0) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload valid input inside file.");
+			}
+			return ResponseEntity.ok("File processed successfully. No of records inserted are:" + holidays.size());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+		}
 
 	}
 }

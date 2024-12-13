@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface HolidayRepository extends JpaRepository<Holiday, Long> {
     List<Holiday> findByCountry(String country);
+    List<Holiday> findByDate(String date);
 }

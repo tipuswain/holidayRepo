@@ -16,18 +16,20 @@ import com.calendar.holiday.demo.repository.HolidayRepository;
 @Service
 public class HolidayService {
 
-	private final HolidayRepository holidayRepository;
-	
-	private static final Logger logger = LogManager.getLogger(HolidayService.class);
-
 	@Autowired
-	public HolidayService(HolidayRepository holidayRepository) {
-		this.holidayRepository = holidayRepository;
-	}
+	private HolidayRepository holidayRepository;
+	
+	private static final Logger logger = LogManager.getLogger(HolidayRepository.class);
 
+	
 	public List<Holiday> listHolidaysByCountry(String country) {
 		logger.info("listing holidays...");
 		return holidayRepository.findByCountry(country);
+	}
+	
+	public List<Holiday> listHolidaysDates(String date) {
+		logger.info("listing holidays...");
+		return holidayRepository.findByDate(date);
 	}
 	
 	public Holiday addHoliday(Holiday holiday) {
